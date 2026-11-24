@@ -5,10 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a640e8c1-2439-401f-892e-a9d2894505ba" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Student_University_Helpdesk/src/main/java/org/example/student_university_helpdesk/service/HelpdeskOfficerService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Student_University_Helpdesk/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Student_University_Helpdesk/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Student_University_Helpdesk/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Student_University_Helpdesk/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Student_University_Helpdesk/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Student_University_Helpdesk/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/src/main/java/org/example/student_university_helpdesk/service/HelpdeskOfficerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/mvnw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk/Student_University_Helpdesk/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,31 +54,30 @@
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.StudentUniversityHelpdeskApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Resource-Bookings&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/janin/Desktop/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.StudentUniversityHelpdeskApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/janin/Desktop/1.1_2026-Y2-S1-MLB_B1G1-08_Student_HelpDesk",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="StudentUniversityHelpdeskApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
-      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
       <module name="Student_University_Helpdesk" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.student_university_helpdesk.StudentUniversityHelpdeskApplication" />
       <extension name="coverage">
@@ -119,6 +119,7 @@
       <workItem from="1791368777029" duration="4852000" />
       <workItem from="1791401742030" duration="3403000" />
       <workItem from="1791437856214" duration="591000" />
+      <workItem from="1795540195906" duration="326000" />
     </task>
     <servers />
   </component>
