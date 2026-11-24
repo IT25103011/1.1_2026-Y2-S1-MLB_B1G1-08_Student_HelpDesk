@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Details - UniDesk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('home', 'ADMIN')}"></div>
+
+<div class="container my-4" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-info-circle text-primary me-2"></i><span th:text="${entityType} ?: 'Entity'">Entity</span> Details
+        </h4>
+        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Hub
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="card-title mb-0 fw-bold" th:text="${entityType + ' Information'}">Entity Information</h5>
+        </div>
+        <div class="card-body p-4">
+            
+            <!-- User Details -->
+            <div th:if="${user != null}">
+                <p><strong>User ID:</strong> <span th:text="${user.userId}"></span></p>
+                <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                <p><strong>Full Name:</strong> <span th:text="${user.firstName + ' ' + user.lastName}"></span></p>
+                <p><strong>Role:</strong> <span class="badge bg-secondary" th:text="${user.role}"></span></p>
+            </div>
+
+            <!-- Ticket Details -->
+            <div th:if="${ticket != null}">
+                <p><strong>Ticket ID:</strong> <span class="text-primary fw-bold" th:text="${'#TK-' + ticket.ticketId}"></span></p>
+                <p><strong>Subject:</strong> <span th:text="${ticket.subject}"></span></p>
+                <p><strong>Status:</strong> <span class="badge bg-warning text-dark" th:text="${ticket.status}"></span></p>
+                <p><strong>Date Sent:</strong> <span th:text="${ticket.createdAt}"></span></p>
+                <p><strong>Description:</strong></p>
+                <div class="p-3 bg-light rounded border text-muted" th:text="${ticket.description}"></div>
+            </div>
+
+            <!-- Booking Details -->
+            <div th:if="${booking != null}">
+                <p><strong>Booking ID:</strong> <span class="text-primary fw-bold" th:text="${'#BK-' + booking.bookingId}"></span></p>
+                <p><strong>Approval Status:</strong> <span class="badge bg-success" th:text="${booking.approvalStatus}"></span></p>
+                <p><strong>Start Time:</strong> <span th:text="${booking.startTime}"></span></p>
+                <p><strong>End Time:</strong> <span th:text="${booking.endTime}"></span></p>
+            </div>
+
+            <!-- Article Details -->
+            <div th:if="${article != null}">
+                <p><strong>Article ID:</strong> <span class="text-primary fw-bold" th:text="${'#KB-' + article.articleId}"></span></p>
+                <p><strong>Title:</strong> <span th:text="${article.title}"></span></p>
+                <p><strong>Category:</strong> <span class="badge bg-info text-dark" th:text="${article.category}"></span></p>
+                <p><strong>Content:</strong></p>
+                <div class="p-3 bg-light rounded border text-muted" th:text="${article.content}"></div>
+            </div>
+
+            <!-- Notice Details -->
+            <div th:if="${notice != null}">
+                <p><strong>Notice ID:</strong> <span class="text-primary fw-bold" th:text="${'#NT-' + notice.noticeId}"></span></p>
+                <p><strong>Title:</strong> <span th:text="${notice.title}"></span></p>
+                <p><strong>Publish Date:</strong> <span th:text="${notice.publishDate}"></span></p>
+                <p><strong>Expiration Date:</strong> <span th:text="${notice.expirationDate}"></span></p>
+                <p><strong>Message:</strong></p>
+                <div class="p-3 bg-light rounded border text-muted" th:text="${notice.message}"></div>
+            </div>
+
+            <!-- Event Details -->
+            <div th:if="${event != null}">
+                <p><strong>Event ID:</strong> <span class="text-primary fw-bold" th:text="${'#EV-' + event.eventId}"></span></p>
+                <p><strong>Title:</strong> <span th:text="${event.title}"></span></p>
+                <p><strong>Date:</strong> <span th:text="${event.date}"></span></p>
+                <p><strong>Location:</strong> <span th:text="${event.location}"></span></p>
+                <p><strong>Duration:</strong> <span th:text="${event.duration + ' minutes'}"></span></p>
+            </div>
+
+            <!-- Resource Details -->
+            <div th:if="${resource != null}">
+                <p><strong>Resource ID:</strong> <span class="text-primary fw-bold" th:text="${resource.resourceId}"></span></p>
+                <p><strong>Resource Type:</strong> <span th:text="${resource.resourceType}"></span></p>
+                <p><strong>Location:</strong> <span th:text="${resource.location}"></span></p>
+                <p><strong>Availability:</strong> <span class="badge" th:classappend="${resource.availability ? 'bg-success' : 'bg-danger'}" th:text="${resource.availability ? 'Available' : 'Unavailable'}"></span></p>
+            </div>
+
+            <!-- Feedback Details -->
+            <div th:if="${feedback != null}">
+                <p><strong>Feedback ID:</strong> <span class="text-primary fw-bold" th:text="${feedback.feedbackId}"></span></p>
+                <p><strong>Rating Score:</strong> <span class="badge bg-warning text-dark" th:text="${feedback.ratingScore + ' / 10'}"></span></p>
+                <p><strong>Comments:</strong> <span th:text="${feedback.comments}"></span></p>
+                <p><strong>Submitted Date:</strong> <span th:text="${feedback.submittedDate}"></span></p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus &amp; Personal Schedule - UniDesk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .calendar-cell {
+            min-height: 180px;
+            background-color: #ffffff;
+            transition: all 0.2s ease-in-out;
+        }
+        .calendar-cell:hover {
+            background-color: #f8fafc;
+        }
+        .badge-academic {
+            background-color: #0d6efd;
+            color: #ffffff;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+        }
+        .badge-personal {
+            background-color: #198754;
+            color: #ffffff;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+        }
+        .event-box {
+            border-left: 3px solid;
+            background-color: #f1f5f9;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .event-box.academic { border-color: #0d6efd; }
+        .event-box.personal { border-color: #198754; }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('schedule', 'STUDENT')}"></div>
+
+<div class="container my-4">
+    <!-- Top Bar Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="mb-0 fw-bold text-dark text-uppercase">
+            <i class="bi bi-calendar3-event text-primary me-2"></i>CAMPUS &amp; PERSONAL SCHEDULE
+        </h4>
+        <a href="#addPersonalEventSection" class="btn btn-primary btn-sm shadow-sm fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i> [+ Add Personal Event]
+        </a>
+    </div>
+
+    <!-- Calendar View Container -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="fw-semibold text-secondary">Calendar View:</span>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary btn-sm px-3" onclick="prevWeek()">[&lt; Prev Week]</button>
+                    <h5 class="mb-0 fw-bold text-primary tracking-wide text-uppercase" id="currentMonthYear"></h5>
+                    <button class="btn btn-outline-secondary btn-sm px-3" onclick="nextWeek()">[Next Week &gt;]</button>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge badge-academic d-flex align-items-center px-2 py-1">[ACADEMIC] Campus</span>
+                    <span class="badge badge-personal d-flex align-items-center px-2 py-1">[PERSONAL] Student</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- 7-Day Calendar Grid (MON - SUN) -->
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0 text-center" style="table-layout: fixed;">
+                    <thead class="table-light">
+                        <tr class="fw-bold text-uppercase small" id="calendarHeaderRow">
+                            <th style="width: 14.28%;" id="dayHead0">MON</th>
+                            <th style="width: 14.28%;" id="dayHead1">TUE</th>
+                            <th style="width: 14.28%;" id="dayHead2">WED</th>
+                            <th style="width: 14.28%;" id="dayHead3">THU</th>
+                            <th style="width: 14.28%;" id="dayHead4">FRI</th>
+                            <th style="width: 14.28%;" id="dayHead5">SAT</th>
+                            <th style="width: 14.28%;" id="dayHead6">SUN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendarBody">
+                        <!-- JS Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD PERSONAL EVENT Form -->
+    <div class="card shadow-sm border-0 rounded-3" id="addPersonalEventSection">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-calendar-plus text-primary me-2"></i>ADD PERSONAL EVENT
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form th:action="@{/schedule/personal-events/create}" method="post">
+                <div class="row g-3">
+                    <!-- Title -->
+                    <div class="col-md-6">
+                        <label for="eventTitle" class="form-label fw-semibold">Title:</label>
+                        <input type="text" class="form-control" id="eventTitle" name="title" placeholder="e.g., Java Project Sprint" required>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="col-md-6">
+                        <label for="eventDate" class="form-label fw-semibold">Date:</label>
+                        <input type="date" class="form-control" id="eventDate" name="date" required>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="col-md-6">
+                        <label for="durationSelect" class="form-label fw-semibold">Duration (Minutes):</label>
+                        <select class="form-select" id="durationSelect" name="duration">
+                            <option value="60">1 Hour</option>
+                            <option value="120" selected>2 Hours</option>
+                            <option value="180">3 Hours</option>
+                            <option value="240">4 Hours</option>
+                            <option value="480">Full Day</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto-Delete Duration -->
+                    <div class="col-md-6">
+                        <label for="autoDeleteSelect" class="form-label fw-semibold">Auto-Delete Duration:</label>
+                        <select class="form-select" id="autoDeleteSelect" name="setDeleteTimer">
+                            <option value="1">Delete After 1 Day</option>
+                            <option value="3">Delete After 3 Days</option>
+                            <option value="7" selected>Delete After 7 Days</option>
+                            <option value="14">Delete After 14 Days</option>
+                            <option value="30">Delete After 30 Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">[ Save Event ]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    const campusEvents = /*[[${campusEvents}]]*/ [];
+    const personalEvents = /*[[${personalEvents}]]*/ [];
+</script>
+
+<script>
+    let currentDate = new Date();
+
+    function getMonday(d) {
+        let date = new Date(d);
+        let day = date.getDay(); // 0 is Sun, 1 is Mon, ..., 6 is Sat
+        let diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        date.setDate(diff);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    function getEventDateStr(d) {
+        if (!d) return '';
+        if (typeof d === 'string') return d.substring(0, 10);
+        if (Array.isArray(d)) {
+            return d[0] + '-' + String(d[1]).padStart(2, '0') + '-' + String(d[2]).padStart(2, '0');
+        }
+        if (typeof d === 'object') {
+            const y = d.year || d.y;
+            const m = String(d.monthValue || d.month || 1).padStart(2, '0');
+            const day = String(d.dayOfMonth || d.day || 1).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+        return '';
+    }
+
+    const dayLabels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+    const monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function renderCalendar() {
+        const monday = getMonday(currentDate);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        // Update Week Title
+        const rangeText = `${monthShort[monday.getMonth()].toUpperCase()} ${monday.getDate()} - ${monthShort[sunday.getMonth()].toUpperCase()} ${sunday.getDate()}, ${sunday.getFullYear()}`;
+        document.getElementById('currentMonthYear').textContent = rangeText;
+
+        const tbody = document.getElementById('calendarBody');
+        tbody.innerHTML = '';
+        
+        const tr = document.createElement('tr');
+        
+        for (let i = 0; i < 7; i++) {
+            const currentDay = new Date(monday);
+            currentDay.setDate(monday.getDate() + i);
+            
+            // Update column header label
+            const headEl = document.getElementById('dayHead' + i);
+            if (headEl) {
+                headEl.innerHTML = `${dayLabels[i]}<br><span class="text-primary small fw-semibold">${monthShort[currentDay.getMonth()]} ${currentDay.getDate()}</span>`;
+            }
+
+            const td = document.createElement('td');
+            td.className = 'calendar-cell text-start align-top p-2';
+            td.style.minHeight = '140px';
+            
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'fw-bold text-muted mb-2 fs-5 border-bottom pb-1';
+            dateDiv.textContent = currentDay.getDate();
+            td.appendChild(dateDiv);
+            
+            // Format YYYY-MM-DD
+            const year = currentDay.getFullYear();
+            const month = String(currentDay.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDay.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            let eventsForDay = [];
+            
+            if (campusEvents && Array.isArray(campusEvents)) {
+                campusEvents.forEach(e => {
+                    if (getEventDateStr(e.date) === dateStr) {
+                        eventsForDay.push({...e, type: 'academic'});
+                    }
+                });
+            }
+            if (personalEvents && Array.isArray(personalEvents)) {
+                personalEvents.forEach(e => {
+                    if (getEventDateStr(e.date) === dateStr) {
+                        eventsForDay.push({...e, type: 'personal'});
+                    }
+                });
+            }
+            
+            if (eventsForDay.length === 0) {
+                const noEventsDiv = document.createElement('div');
+                noEventsDiv.className = 'text-center text-muted small py-4 opacity-50 fst-italic';
+                noEventsDiv.textContent = 'No Events';
+                td.appendChild(noEventsDiv);
+            } else {
+                eventsForDay.forEach(e => {
+                    const eventBox = document.createElement('div');
+                    eventBox.className = `event-box ${e.type} mb-2 p-2 rounded`;
+                    
+                    const badge = document.createElement('span');
+                    badge.className = `badge badge-${e.type} mb-1 d-inline-block`;
+                    badge.textContent = e.type === 'academic' ? '[ACADEMIC]' : '[PERSONAL]';
+                    
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'fw-bold text-dark small';
+                    titleDiv.textContent = e.title;
+                    
+                    eventBox.appendChild(badge);
+                    eventBox.appendChild(titleDiv);
+                    
+                    if (e.duration) {
+                        const timeDiv = document.createElement('div');
+                        timeDiv.className = 'text-muted small';
+                        timeDiv.innerHTML = `<i class="bi bi-clock me-1"></i>${e.duration} mins`;
+                        eventBox.appendChild(timeDiv);
+                    }
+                    
+                    td.appendChild(eventBox);
+                });
+            }
+            
+            tr.appendChild(td);
+        }
+        
+        tbody.appendChild(tr);
+    }
+
+    function prevWeek() {
+        currentDate.setDate(currentDate.getDate() - 7);
+        renderCalendar();
+    }
+
+    function nextWeek() {
+        currentDate.setDate(currentDate.getDate() + 7);
+        renderCalendar();
+    }
+
+    // Default form date to today's local date (YYYY-MM-DD)
+    const now = new Date();
+    const todayLocalStr = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0');
+    const eventDateInput = document.getElementById('eventDate');
+    if (eventDateInput) {
+        eventDateInput.value = todayLocalStr;
+    }
+    
+    // Initial render
+    renderCalendar();
+</script>
+</body>
+</html>

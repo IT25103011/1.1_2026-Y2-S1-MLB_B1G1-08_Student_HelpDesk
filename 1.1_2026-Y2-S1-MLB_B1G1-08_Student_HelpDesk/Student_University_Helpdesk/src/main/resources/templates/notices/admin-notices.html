@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notice Board Management - UniDesk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .badge-red { background-color: #dc3545; color: #ffffff; }
+        .badge-grey { background-color: #6c757d; color: #ffffff; }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('notices', 'ADMIN')}"></div>
+
+<div class="container my-4">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-2">
+        <h4 class="mb-0 fw-bold text-dark text-uppercase">
+            <i class="bi bi-megaphone text-primary me-2"></i>ADMIN NOTICE BOARD MANAGEMENT
+        </h4>
+        <a href="#noticeFormSection" class="btn btn-primary btn-sm shadow-sm fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i> [+ Create Announcement]
+        </a>
+    </div>
+
+    <!-- Form: CREATE / MODIFY ANNOUNCEMENT -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5" id="noticeFormSection">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title mb-0 fw-bold text-dark" id="formHeaderTitle">
+                <i class="bi bi-pencil-square text-primary me-2"></i>CREATE / MODIFY ANNOUNCEMENT
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form id="noticeForm" th:action="${editNotice != null ? '/admin/notices/update' : '/admin/notices/create'}" method="post">
+                <input type="hidden" name="adminId" value="1" />
+                <input type="hidden" id="noticeIdField" name="noticeId" th:value="${editNotice != null ? editNotice.noticeId : ''}" />
+
+                <!-- Notice Title -->
+                <div class="mb-3">
+                    <label for="noticeTitle" class="form-label fw-semibold">Notice Title: <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="noticeTitle" name="title" 
+                           th:value="${editNotice != null ? editNotice.title : ''}" placeholder="Enter notice title..." required>
+                </div>
+
+                <!-- Color Category (Urgent vs Normal) -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold d-block">Color Category: <span class="text-danger">*</span></label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="colorCategory" id="colorRed" value="RED" 
+                               th:checked="${editNotice == null or (editNotice.title != null and editNotice.title.toLowerCase().contains('urgent'))}">
+                        <label class="form-check-label fw-semibold text-danger" for="colorRed">
+                            <span class="badge bg-danger me-1">&bull;</span> RED (Urgent)
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="colorCategory" id="colorGrey" value="GREY"
+                               th:checked="${editNotice != null and !(editNotice.title != null and editNotice.title.toLowerCase().contains('urgent'))}">
+                        <label class="form-check-label fw-semibold text-secondary" for="colorGrey">
+                            <span class="badge bg-secondary me-1">&bull;</span> GREY (Normal)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Expiration / Duration Timer -->
+                <div class="mb-3">
+                    <label for="expirationTimer" class="form-label fw-semibold">Expiration / Duration: <span class="text-danger">*</span></label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <select class="form-select" id="expirationTimer" name="expirationTimer">
+                                <option value="6 Hours">6 Hours</option>
+                                <option value="12 Hours">12 Hours</option>
+                                <option value="24 Hours" selected>24 Hours</option>
+                                <option value="48 Hours">48 Hours</option>
+                                <option value="5 Days">5 Days</option>
+                                <option value="14 Days">14 Days</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="date" class="form-control" id="expirationDate" name="expirationDate" 
+                                   th:value="${editNotice != null ? editNotice.expirationDate : ''}" placeholder="Or select exact date">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notice Text -->
+                <div class="mb-4">
+                    <label for="noticeMessage" class="form-label fw-semibold">Notice Text: <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="noticeMessage" name="message" rows="4" 
+                              placeholder="Enter announcement text..." required th:text="${editNotice != null ? editNotice.message : ''}"></textarea>
+                </div>
+
+                <!-- Publish Button -->
+                <div>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">[ Publish Notice ]</button>
+                    <button type="button" class="btn btn-outline-secondary px-3 ms-2" onclick="resetNoticeForm()">Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table: ACTIVE ANNOUNCEMENTS -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-card-checklist text-primary me-2"></i>ACTIVE ANNOUNCEMENTS
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="text-secondary small fw-bold">
+                            <th style="width: 15%;">ID</th>
+                            <th style="width: 35%;">Title</th>
+                            <th style="width: 15%;">Color</th>
+                            <th style="width: 15%;">Expiration</th>
+                            <th style="width: 20%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows -->
+                        <tr th:if="${notices != null and !#lists.isEmpty(notices)}" th:each="n : ${notices}">
+                            <td class="fw-bold text-primary" th:text="${'#NT-00' + n.noticeId}">#NT-001</td>
+                            <td class="fw-semibold" th:text="${n.title}">Wi-Fi Downtime</td>
+                            <td>
+                                <span th:if="${n.title.toLowerCase().contains('urgent')}" class="badge badge-red px-2 py-1">RED</span>
+                                <span th:unless="${n.title.toLowerCase().contains('urgent')}" class="badge badge-grey px-2 py-1">GREY</span>
+                            </td>
+                            <td th:text="${n.expirationDate != null ? n.expirationDate : '24 Hours'}">24 Hours</td>
+                            <td>
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1"
+                                        th:data-id="${n.noticeId}"
+                                        th:data-title="${n.title}"
+                                        th:data-message="${n.message}"
+                                        th:data-color="${n.title.toLowerCase().contains('urgent') ? 'RED' : 'GREY'}"
+                                        th:data-expiration="${n.expirationDate}"
+                                        onclick="populateModifyFromBtn(this)">
+                                    [Modify]
+                                </button>
+                                <form th:action="@{/admin/notices/delete}" method="post" class="d-inline" onsubmit="return confirm('Delete this announcement?');">
+                                    <input type="hidden" name="noticeId" th:value="${n.noticeId}" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">[Delete]</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State if no notices -->
+                        <tr th:if="${notices == null or #lists.isEmpty(notices)}">
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-megaphone fs-3 d-block mb-2 text-secondary"></i>
+                                <span>No campus announcements currently published. Use the form above to broadcast an announcement.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function populateModifyFromBtn(btn) {
+        const id = btn.getAttribute('data-id');
+        let title = btn.getAttribute('data-title') || '';
+        const message = btn.getAttribute('data-message') || '';
+        const color = btn.getAttribute('data-color') || 'GREY';
+        const expiration = btn.getAttribute('data-expiration');
+        if (title.toUpperCase().startsWith('[URGENT] ')) {
+            title = title.substring(9).trim();
+        }
+        populateModifyNotice(id, title, color, expiration, message);
+    }
+
+    function populateModifyNotice(id, title, color, expiration, message) {
+        document.getElementById('noticeIdField').value = id;
+        document.getElementById('noticeTitle').value = title;
+        document.getElementById('noticeMessage').value = message;
+        if (expiration) {
+            document.getElementById('expirationDate').value = expiration;
+        }
+        if (color === 'RED') {
+            document.getElementById('colorRed').checked = true;
+            document.getElementById('colorGrey').checked = false;
+        } else {
+            document.getElementById('colorGrey').checked = true;
+            document.getElementById('colorRed').checked = false;
+        }
+        document.getElementById('formHeaderTitle').innerText = 'MODIFY ANNOUNCEMENT (#' + (id.startsWith('NT') ? id : 'NT-' + id) + ')';
+        document.getElementById('noticeForm').action = '/admin/notices/update';
+        document.getElementById('noticeFormSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetNoticeForm() {
+        document.getElementById('noticeIdField').value = '';
+        document.getElementById('noticeTitle').value = '';
+        document.getElementById('noticeMessage').value = '';
+        document.getElementById('expirationDate').value = '';
+        document.getElementById('colorRed').checked = true;
+        document.getElementById('colorGrey').checked = false;
+        document.getElementById('formHeaderTitle').innerText = 'CREATE / MODIFY ANNOUNCEMENT';
+        document.getElementById('noticeForm').action = '/admin/notices/create';
+    }
+</script>
+</body>
+</html>

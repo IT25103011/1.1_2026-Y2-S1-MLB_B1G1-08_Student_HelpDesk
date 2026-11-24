@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base Management - UniDesk Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('kb', 'ADMIN')}"></div>
+
+<div class="container my-4">
+
+    <!-- Flash Alert Banners -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}">Article published successfully.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}">An error occurred.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-2">
+        <h4 class="mb-0 fw-bold text-dark text-uppercase">
+            <i class="bi bi-journal-text text-primary me-2"></i>KNOWLEDGE BASE MANAGEMENT
+        </h4>
+        <a href="#articleFormCard" class="btn btn-primary btn-sm shadow-sm fw-semibold" onclick="resetFormToCreate()">
+            <i class="bi bi-plus-circle me-1"></i> [+ New Article]
+        </a>
+    </div>
+
+    <!-- Section 1: PUBLISHED ARTICLES TABLE -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold text-dark text-uppercase">
+                <i class="bi bi-card-checklist text-primary me-2"></i>PUBLISHED ARTICLES &amp; POLICIES
+            </h5>
+            <span class="badge bg-secondary" th:text="${articles != null ? articles.size() + ' Total' : '0 Total'}">0 Total</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr class="text-secondary small fw-bold">
+                        <th style="width: 10%;">ID</th>
+                        <th style="width: 25%;">Title</th>
+                        <th style="width: 15%;">Type</th>
+                        <th style="width: 30%;">Content Preview</th>
+                        <th style="width: 20%;">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Dynamic iteration over real database articles -->
+                    <tr th:if="${articles != null and !#lists.isEmpty(articles)}" th:each="art : ${articles}">
+                        <td class="fw-bold text-primary" th:text="${'#KB-0' + art.articleId}">#KB-01</td>
+                        <td class="fw-semibold" th:text="${art.title}">Wi-Fi Setup Guide</td>
+                        <td>
+                            <span th:if="${art.category == 'Policy'}" class="badge bg-warning text-dark px-2 py-1">Policy</span>
+                            <span th:if="${art.category == 'Regulations'}" class="badge bg-danger px-2 py-1">Regulations</span>
+                            <span th:if="${art.category != 'Policy' and art.category != 'Regulations'}" class="badge bg-info text-dark px-2 py-1" th:text="${art.category ?: 'FAQ'}">FAQ</span>
+                        </td>
+                        <td class="text-muted small">
+                            <span th:text="${#strings.abbreviate(art.content, 90)}">Article text preview...</span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-outline-info btn-sm me-1 px-2 py-1"
+                                    th:data-id="${art.articleId}"
+                                    th:data-title="${art.title}"
+                                    th:data-category="${art.category ?: 'FAQ'}"
+                                    th:data-content="${art.content}"
+                                    onclick="viewArticleModal(this)">
+                                [View]
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm me-1 px-2 py-1"
+                                    th:data-id="${art.articleId}"
+                                    th:data-title="${art.title}"
+                                    th:data-category="${art.category ?: 'FAQ'}"
+                                    th:data-keywords="${art.keywords ?: ''}"
+                                    th:data-content="${art.content}"
+                                    onclick="populateEditFromBtn(this)">
+                                [Edit]
+                            </button>
+                            <form th:action="@{/admin/articles/delete}" method="post" class="d-inline" onsubmit="return confirm('Archive or delete this article?');">
+                                <input type="hidden" name="articleId" th:value="${art.articleId}" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm px-2 py-1">[Delete]</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Clean Empty State -->
+                    <tr th:if="${articles == null or #lists.isEmpty(articles)}">
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="bi bi-journal-x fs-3 d-block mb-2 text-secondary"></i>
+                            <span>No knowledge base articles published yet. Use the form below to create your first article.</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: CREATE / EDIT ARTICLE FORM -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5" id="articleFormCard">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="card-title mb-0 fw-bold text-dark" id="formHeaderTitle">
+                <i class="bi bi-pencil-square text-primary me-2"></i>CREATE NEW ARTICLE
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form id="articleForm" th:action="@{/admin/articles/create}" method="post">
+                <input type="hidden" id="editArticleId" name="articleId" value="" />
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label for="articleTitle" class="form-label fw-semibold">Article Title: <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="articleTitle" name="title" placeholder="e.g. How to Connect to Campus Wi-Fi" required>
+                </div>
+
+                <!-- Type (Radio Options) -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold d-block">Article Category / Type: <span class="text-danger">*</span></label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="category" id="typeFaq" value="FAQ" checked>
+                        <label class="form-check-label" for="typeFaq">FAQ Entry</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="category" id="typePolicy" value="Policy">
+                        <label class="form-check-label" for="typePolicy">Policy Document</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="category" id="typeRegulations" value="Regulations">
+                        <label class="form-check-label" for="typeRegulations">Campus Regulations</label>
+                    </div>
+                </div>
+
+                <!-- Search Keywords -->
+                <div class="mb-3">
+                    <label for="articleKeywords" class="form-label fw-semibold">Search Keywords: <span class="text-muted small">(Comma-separated tags for search)</span></label>
+                    <input type="text" class="form-control" id="articleKeywords" name="keywords" placeholder="e.g. wifi, eduroam, network, password" value="campus,helpdesk,support">
+                </div>
+
+                <!-- Content Body -->
+                <div class="mb-4">
+                    <label for="articleContent" class="form-label fw-semibold">Article Content / Body: <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="articleContent" name="content" rows="7" placeholder="Write comprehensive guide or policy details here..." required></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <button type="submit" id="submitBtn" class="btn btn-primary px-4 fw-semibold">
+                            <i class="bi bi-send me-1"></i> [ Publish Article ]
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary px-3 ms-2" onclick="resetFormToCreate()">
+                            Reset Form
+                        </button>
+                    </div>
+                    <span class="text-muted small fst-italic">* Articles appear immediately in the student Knowledge Base &amp; Search view.</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal for Reading Full Article -->
+<div class="modal fade" id="articleViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalArticleTitle">Article Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary" id="modalArticleId">#KB-01</span>
+                    <span class="badge bg-light text-dark border" id="modalArticleCategory">Category: FAQ</span>
+                </div>
+                <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-line; line-height: 1.7;" id="modalArticleContent">
+                    Full article text here...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function populateEditFromBtn(btn) {
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title') || '';
+        const category = btn.getAttribute('data-category') || 'FAQ';
+        const keywords = btn.getAttribute('data-keywords') || 'campus,helpdesk,support';
+        const content = btn.getAttribute('data-content') || '';
+
+        document.getElementById('editArticleId').value = id;
+        document.getElementById('articleTitle').value = title;
+        document.getElementById('articleKeywords').value = keywords;
+        document.getElementById('articleContent').value = content;
+
+        if (category === 'Policy') {
+            document.getElementById('typePolicy').checked = true;
+        } else if (category === 'Regulations') {
+            document.getElementById('typeRegulations').checked = true;
+        } else {
+            document.getElementById('typeFaq').checked = true;
+        }
+
+        document.getElementById('formHeaderTitle').innerHTML = '<i class="bi bi-pencil-square text-warning me-2"></i>EDIT ARTICLE (#' + (id.toString().startsWith('KB') ? id : 'KB-' + id) + ')';
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle me-1"></i> [ Save Changes ]';
+        document.getElementById('articleForm').action = '/admin/articles/update';
+        document.getElementById('articleFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetFormToCreate() {
+        document.getElementById('editArticleId').value = '';
+        document.getElementById('articleTitle').value = '';
+        document.getElementById('articleKeywords').value = 'campus,helpdesk,support';
+        document.getElementById('articleContent').value = '';
+        document.getElementById('typeFaq').checked = true;
+
+        document.getElementById('formHeaderTitle').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i>CREATE NEW ARTICLE';
+        document.getElementById('submitBtn').innerHTML = '<i class="bi bi-send me-1"></i> [ Publish Article ]';
+        document.getElementById('articleForm').action = '/admin/articles/create';
+    }
+
+    function viewArticleModal(btn) {
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title') || '';
+        const category = btn.getAttribute('data-category') || 'FAQ';
+        const content = btn.getAttribute('data-content') || '';
+
+        document.getElementById('modalArticleId').innerText = (id && id.toString().startsWith('#') ? id : '#KB-0' + id);
+        document.getElementById('modalArticleTitle').innerText = title;
+        document.getElementById('modalArticleCategory').innerText = 'Category: ' + category;
+        document.getElementById('modalArticleContent').innerText = content;
+
+        new bootstrap.Modal(document.getElementById('articleViewModal')).show();
+    }
+</script>
+</body>
+</html>

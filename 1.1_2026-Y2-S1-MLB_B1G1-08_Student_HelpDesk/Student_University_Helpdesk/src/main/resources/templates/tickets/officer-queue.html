@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Officer Ticket Queue - UniDesk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .badge-pending { background-color: #ffc107; color: #212529; font-weight: 600; }
+        .badge-inprogress { background-color: #0d6efd; color: #ffffff; font-weight: 600; }
+        .badge-completed { background-color: #198754; color: #ffffff; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('tickets', 'OFFICER')}"></div>
+
+<div class="container my-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <div>
+            <h4 class="mb-0 fw-bold text-dark text-uppercase">
+                <i class="bi bi-headset text-primary me-2"></i>SUPPORT OFFICER TICKET QUEUE
+            </h4>
+            <span class="text-muted small">Manage incoming student support requests and active assignments</span>
+        </div>
+        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Section 1: Incoming Tickets Queue -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="card-title mb-0 fw-bold text-primary">
+                <i class="bi bi-inbox-fill me-2"></i>Incoming Tickets Queue
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="text-secondary small fw-bold">
+                            <th style="width: 15%;">Ticket ID</th>
+                            <th style="width: 30%;">Request Category</th>
+                            <th style="width: 20%;">Date Sent</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 20%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Live dynamic loop if incomingTickets or tickets provided -->
+                        <tr th:if="${incomingTickets != null and !#lists.isEmpty(incomingTickets)}" th:each="t : ${incomingTickets}">
+                            <td class="fw-bold text-primary" th:text="${'#TK-' + t.ticketId}">#TK-1011</td>
+                            <td th:text="${t.subject}">IT Support</td>
+                            <td th:text="${t.createdAt != null ? #temporals.format(t.createdAt, 'yyyy-MM-dd') : '2026-09-26'}">2026-09-26</td>
+                            <td><span class="badge badge-pending px-2 py-1" th:text="${t.status}">PENDING</span></td>
+                            <td>
+                                <form th:action="@{/officer/tickets/accept}" method="post" class="d-inline">
+                                    <input type="hidden" name="ticketId" th:value="${t.ticketId}" />
+                                    <input type="hidden" name="status" value="IN_PROGRESS" />
+                                    <button type="submit" class="btn btn-outline-success btn-sm">[Accept Ticket]</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State if no incoming tickets -->
+                        <tr th:if="${incomingTickets == null or #lists.isEmpty(incomingTickets)}">
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-3 d-block mb-2 text-secondary"></i>
+                                <span>No unassigned incoming tickets in queue.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: My Active / Accepted Tickets -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-person-workspace me-2 text-primary"></i>My Active / Accepted Tickets
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="text-secondary small fw-bold">
+                            <th style="width: 15%;">Ticket ID</th>
+                            <th style="width: 25%;">Student Details</th>
+                            <th style="width: 20%;">Category</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 25%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows -->
+                        <tr th:if="${myActiveTickets != null and !#lists.isEmpty(myActiveTickets)}" th:each="at : ${myActiveTickets}">
+                            <td class="fw-bold text-primary" th:text="${'#TK-' + at.ticketId}">#TK-1008</td>
+                            <td th:text="${at.submittedBy != null ? at.submittedBy.firstName + ' (' + at.submittedBy.userId + ')' : 'Student'}">Student</td>
+                            <td th:text="${at.subject}">Academic</td>
+                            <td>
+                                <span th:if="${at.status == 'PENDING' or at.status == 'OPEN'}" class="badge badge-pending px-2 py-1">Pending</span>
+                                <span th:if="${at.status == 'IN_PROGRESS' or at.status == 'IN PROGRESS'}" class="badge badge-inprogress px-2 py-1">In Progress</span>
+                                <span th:if="${at.status == 'COMPLETED'}" class="badge badge-completed px-2 py-1">Completed</span>
+                            </td>
+                            <td>
+                                <form th:action="@{/officer/tickets/update-status}" method="post" class="d-flex align-items-center gap-2">
+                                    <input type="hidden" name="ticketId" th:value="${at.ticketId}" />
+                                    <input type="hidden" name="returnUrl" value="/tickets/officer-queue" />
+                                    <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                        <option value="PENDING" th:selected="${at.status == 'PENDING' or at.status == 'OPEN'}">Pending</option>
+                                        <option value="IN_PROGRESS" th:selected="${at.status == 'IN_PROGRESS' or at.status == 'IN PROGRESS'}">In Progress</option>
+                                        <option value="COMPLETED" th:selected="${at.status == 'COMPLETED'}">Completed</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary py-1">[Update]</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Empty State if no active tickets -->
+                        <tr th:if="${myActiveTickets == null or #lists.isEmpty(myActiveTickets)}">
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-check2-circle fs-3 d-block mb-2 text-secondary"></i>
+                                <span>No active tickets assigned to your queue. Accept a ticket from the incoming requests above.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Wireframe Footnote -->
+            <div class="p-3 bg-light border-top text-muted small">
+                * Status options available: <code>[ Pending | In Progress | Completed ]</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

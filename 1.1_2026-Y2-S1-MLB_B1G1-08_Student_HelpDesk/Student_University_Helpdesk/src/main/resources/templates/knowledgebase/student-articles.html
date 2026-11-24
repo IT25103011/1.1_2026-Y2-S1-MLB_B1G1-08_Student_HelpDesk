@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Knowledge Base &amp; FAQs - UniDesk</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .article-card {
+            border-left: 4px solid #0d6efd;
+            transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navigation Fragment -->
+<div th:replace="~{fragments/navbar :: navbar('kb', 'STUDENT')}"></div>
+
+<div class="container my-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h4 class="mb-0 fw-bold text-dark text-uppercase">
+            <i class="bi bi-book-half text-primary me-2"></i>CAMPUS KNOWLEDGE BASE &amp; HELPDESK FAQS
+        </h4>
+        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Search Section -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-body p-4 bg-white">
+            <form th:action="@{/knowledgebase/search}" method="get" onsubmit="event.preventDefault(); searchArticles();">
+                <div class="row align-items-center g-2">
+                    <label for="searchQuery" class="col-auto col-form-label fw-bold text-dark">Search Articles:</label>
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchQuery" name="keyword" 
+                                   th:value="${searchKeyword}"
+                                   placeholder="Enter Keyword (e.g., Wi-Fi, Exam, Enrolment)" onkeyup="searchArticles()">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">[ Search ]</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Articles Section: POPULAR & PUBLISHED ARTICLES -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold text-dark text-uppercase">
+                <i class="bi bi-fire text-danger me-2"></i>POPULAR &amp; PUBLISHED ARTICLES
+            </h5>
+            <span class="badge bg-secondary" id="articleCount">Showing Articles</span>
+        </div>
+        <div class="card-body p-4" id="articlesContainer">
+            
+            <!-- Live Dynamic Articles if present in model -->
+            <div th:if="${articles != null and !#lists.isEmpty(articles)}" th:each="art : ${articles}" 
+                 class="card mb-3 article-card shadow-sm border-0 bg-white" 
+                 th:data-search="${art.title + ' ' + art.category + ' ' + (art.keywords ?: '')}">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold text-primary mb-2">
+                        &gt; <span th:text="${art.title}">Article Title</span>
+                    </h5>
+                    <div class="text-muted small mb-3">
+                        <span class="badge bg-light text-dark border me-2"><i class="bi bi-tag-fill me-1 text-primary"></i>Category: <span th:text="${art.category ?: 'General'}">General</span></span>
+                        <span><i class="bi bi-calendar3 me-1"></i>Last Updated: 2026-09-01</span>
+                    </div>
+                    <p class="card-text text-secondary mb-3 fst-italic" th:text="${#strings.abbreviate(art.content, 180)}">
+                        "Step-by-step guide..."
+                    </p>
+                    <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-semibold read-more-btn"
+                            th:data-id="${art.articleId}"
+                            th:data-title="${art.title}"
+                            th:data-category="${art.category ?: 'General'}"
+                            th:data-content="${art.content}"
+                            onclick="openArticleFromBtn(this)">
+                        [Read More]
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty state when no articles match -->
+            <div th:if="${articles == null or #lists.isEmpty(articles)}" class="p-5 text-center text-muted">
+                <i class="bi bi-journal-x fs-1 text-secondary mb-2 d-block"></i>
+                <h6 class="fw-bold">No Knowledge Base articles found</h6>
+                <p class="small">Try searching with different keywords like "wifi", "study", or "library".</p>
+                <a th:href="@{/knowledgebase/student-articles}" class="btn btn-outline-primary btn-sm mt-2">View All Articles</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Reading Full Article -->
+<div class="modal fade" id="articleViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalArticleTitle">Article Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary" id="modalArticleId">#KB-012</span>
+                    <span class="badge bg-light text-dark border" id="modalArticleCategory">Category: Network</span>
+                </div>
+                <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-line; line-height: 1.7;" id="modalArticleContent">
+                    Full article text here...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/navbar :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function searchArticles() {
+        const query = document.getElementById('searchQuery').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.article-card');
+        let count = 0;
+        cards.forEach(card => {
+            const data = card.getAttribute('data-search').toLowerCase();
+            if (!query || data.includes(query)) {
+                card.style.display = '';
+                count++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        document.getElementById('articleCount').innerText = count + ' Article(s)';
+    }
+
+    function openArticleFromBtn(btn) {
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title');
+        const category = btn.getAttribute('data-category');
+        const content = btn.getAttribute('data-content');
+        readArticleModal(id, title, category, content);
+    }
+
+    function readArticleModal(id, title, category, content) {
+        document.getElementById('modalArticleId').innerText = (id && id.toString().startsWith('#') ? id : '#KB-' + id);
+        document.getElementById('modalArticleTitle').innerText = title;
+        document.getElementById('modalArticleCategory').innerText = 'Category: ' + (category || 'General');
+        document.getElementById('modalArticleContent').innerText = content;
+        new bootstrap.Modal(document.getElementById('articleViewModal')).show();
+    }
+</script>
+</body>
+</html>
